@@ -102,7 +102,9 @@ IF !ERRORLEVEL! EQU 88 (
 	TYPE "!TEXTPATH!"|clip
 	DEL /Q "!TEXTPATH!"
 )
-REM IF !ERRORLEVEL! EQU 83 for /f "delims=" %%I in ('powershell -command "[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms') | Out-Null; $f = New-Object System.Windows.Forms.SaveFileDialog; $f.Filter = 'Pinout File|*.txt'; $f.Multiselect = $false; if ($f.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Host $f.FileName } else { Write-Host 'None' }"') do IF NOT "%%I"=="None" CALL :WRITETEXT "%%I"
+IF !ERRORLEVEL! EQU 83 ^
+for /f "delims=" %%I in ('powershell -command "[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms') | Out-Null; $f = New-Object System.Windows.Forms.SaveFileDialog; $f.Filter = 'Pinout File|*.txt'; if ($f.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Host $f.FileName } else { Write-Host 'None' }"') do ^
+IF NOT "%%I"=="None" CALL :WRITETEXT "%%I"
 GOTO LOOP2
 
 :DRAWLOGO
