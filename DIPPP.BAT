@@ -35,7 +35,7 @@ GOTO DRAWDIP
 
 :DRAWDIP
 CALL :DRAWLOGO
-ECHO !CHIP_NAME! Pinout !WRITEORNOT!
+ECHO !CHIP_NAME! Pinout
 ECHO.
 ECHO 			 .--__--.
 SET /A "TEMPVARI01=!CHIP_PINNO! / 2"
@@ -89,18 +89,21 @@ IF !ERRORLEVEL! EQU 13 (
 	GOTO DRAWDIP
 )
 IF !ERRORLEVEL! EQU 67 (
-	SET "TEXTPATH=1!TEMP!\!RANDOM!!RANDOM!.TXT"
-	REM SET "WRITEORNOT=^>"!TEXTPATH:~1!""
-	REM PAUSE
-	REM ECHO !WRITEORNOT!
-	REM PAUSE
-	REM SET "COPYORNOT=1"
-	
-	CALL :WRITETEXT "!TEXTPATH:~1!"
-	REM TYPE "!TEMPVARI01!"|clip
+	SET "TEXTPATH=!TEMP!\!RANDOM!!RANDOM!.TXT"
+	CALL :WRITETEXT "!TEXTPATH!"
+	TYPE "!TEXTPATH!"|clip
+	DEL /Q "!TEXTPATH!"
 )
+IF !ERRORLEVEL! EQU 88 (
+	SET "TEXTPATH=!TEMP!\!RANDOM!!RANDOM!.TXT"
+	ECHO ``` >"!TEXTPATH!"
+	CALL :WRITETEXT "!TEXTPATH!"
+	ECHO ``` >>"!TEXTPATH!"
+	TYPE "!TEXTPATH!"|clip
+	DEL /Q "!TEXTPATH!"
+)
+REM IF !ERRORLEVEL! EQU 83 for /f "delims=" %%I in ('powershell -command "[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms') | Out-Null; $f = New-Object System.Windows.Forms.SaveFileDialog; $f.Filter = 'Pinout File|*.txt'; $f.Multiselect = $false; if ($f.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Host $f.FileName } else { Write-Host 'None' }"') do IF NOT "%%I"=="None" CALL :WRITETEXT "%%I"
 GOTO LOOP2
-REM pause
 
 :DRAWLOGO
 CLS
@@ -150,11 +153,8 @@ GOTO :EOF
 SET "CHIP_NAME=AX5208C"
 SET "CHIP_PINNO=40"
 SET "CURSORPOS=1"
-SET "WRITEORNOT="
-
-
-
-
+REM SET "WRITEORNOT="
+SET "LAST_MESSAGE="
 GOTO :EOF
 
 REM :FILLBLANK VARINAME FILLWITH HOWFILL
@@ -221,22 +221,19 @@ GOTO :EOF
 
 REM :WRITETEXT
 :WRITETEXT
-ECHO !CHIP_NAME! Pinout !WRITEORNOT! >"%~1"
-ECHO. >"%~1"
-ECHO 			 .--__--. >"%~1"
+ECHO !CHIP_NAME! Pinout !WRITEORNOT! >>"%~1"
+ECHO. >>"%~1"
+ECHO                          .--__--. >>"%~1"
 SET /A "TEMPVARI01=!CHIP_PINNO! / 2"
 SET "TEMPVARI02=!CHIP_PINNO!"
 FOR /L %%I IN (1,1,!TEMPVARI01!) DO ( 
-	
-	REM ECHO 	%%I	S!TEMPVARI02!
 	CALL :STRLENFIT TEMPVARI03 2 0 %%I
 	CALL :STRLENFIT TEMPVARI04 2 0 !TEMPVARI02!
 	CALL :STRLENFIT TEMPVARI05 23 B !CHIP_PIN%%I!
 	CALL :DELAYEDWRAP TEMPVARI06 CHIP_PIN!TEMPVARI02%!
-	ECHO !TEMPVARI05! -^|!TEMPVARI03!  !TEMPVARI04!^|- !TEMPVARI06! >"%~1"
+	ECHO !TEMPVARI05! -^|!TEMPVARI03!  !TEMPVARI04!^|- !TEMPVARI06! >>"%~1"
 	REM echo 			`------'
 	SET /A TEMPVARI02-=1
 )
-echo 			 '------' >"%~1"
-start "%~1"
+echo                          '------' >>"%~1"
 goto :eof
