@@ -1,4 +1,5 @@
 @ECHO OFF
+REM set /p="ss\r\nss ss"|clip
 if NOT defined TEMPVARI01 (
     set "TEMPVARI01=true"
     start conhost.exe %0
@@ -23,8 +24,8 @@ REM ECHO !CHIP_PINNO!
 REM SET TEMPVARI01=1
 REM :LOOP01
 FOR /L %%I IN (1,1,!CHIP_PINNO!) DO SET "CHIP_PIN%%I=Desc %%I"
-SET /A "TEMPVARI02=(!CHIP_PINNO! / 2) + 15"
-IF !CHIP_PINNO! GEQ 30 (
+SET /A "TEMPVARI02=(!CHIP_PINNO! / 2) + 18"
+IF !CHIP_PINNO! GEQ 28 (
 	FOR /L %%I IN (30,1,!TEMPVARI02!) DO MODE 120,%%I >NUL & BREAK
 ) ELSE (
 	FOR /L %%I IN (30,-1,!TEMPVARI02!) DO MODE 120,%%I >NUL & BREAK
@@ -52,7 +53,9 @@ FOR /L %%I IN (1,1,!TEMPVARI01!) DO (
 )
 timeout 0 >nul
 echo 			 '------'
-ECHO 	[7m[←↑↓→][27m_Move Cursor	[7m[ENTER][27m_Edit chosen label
+ECHO 	[7m[←↑↓→][27m_Move Cursor	[7m[ENTER][27m_Edit chosen label	[7m[X][27m_Copy to clipboard with markdown characters
+ECHO.
+ECHO 	[7m[S][27m_Save as .txt	[7m[C][27m_Copy to clipboard		[101m[93m[7m[N][27m_New[0m
 
 :LOOP2
 CALL :GETCONSOLECURSORPOS !CURSORPOS! TEMPVARI04
@@ -84,6 +87,8 @@ IF !ERRORLEVEL! GEQ 37 IF !ERRORLEVEL! LEQ 40 (
 IF !ERRORLEVEL! EQU 13 (
 	CALL :ASKPROMPT "Label for pin !CURSORPOS!" CHIP_PIN!CURSORPOS! "A label for this specific pin."
 	GOTO DRAWDIP
+)
+IF !ERRORLEVEL! EQU 67 (
 )
 GOTO LOOP2
 REM pause
