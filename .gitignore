@@ -1,4 +1,3 @@
-*.cmd
 ignore
-0
-*.txt
+.cmd
+.txt

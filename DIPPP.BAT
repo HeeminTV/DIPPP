@@ -1,17 +1,24 @@
 @ECHO OFF
-REM set /p="ss\r\nss ss"|clip
 if NOT defined TEMPVARI01 (
     set "TEMPVARI01=true"
     start conhost.exe %0
     exit /b 0
 )
 SETLOCAL ENABLEDELAYEDEXPANSION
+
+:: SOFTWARE GLOBAL INFORMATIONS
+SET "DIPPP_VER=1.0b"
+SET "DIPPP_CHIPTOP=.--__--."
+SET "DIPPP_CHIPBOTTOM='------'"
+:: END
+TITLE DIPPP !DIPPP_VER! - [New Project]
 chcp 65001 >NUL
 MODE 120,30 >NUL
 REM echo 
 CALL :RESET
 CALL :DRAWLOGO
 CALL :ASKPROMPT "Chip Name" CHIP_NAME "Name/ID of the chip to be configured in this project."
+TITLE DIPPP !DIPPP_VER! - [!CHIP_NAME!]
 CALL :ASKPROMPT "Number of the pins" CHIP_PINNO "Number of the pins for !CHIP_NAME!. Min 2, Max 64."
 SET "TEMPVARI01="
 for /f "delims=0123456789" %%i in ("!CHIP_PINNO!") do set "TEMPVARI01=%%i"
@@ -20,9 +27,6 @@ IF !CHIP_PINNO! LSS 2 SET "CHIP_PINNO=2"
 IF !CHIP_PINNO! GTR 64 SET "CHIP_PINNO=64"
 SET /A TEMPVARI01=!CHIP_PINNO! %% 2
 IF !TEMPVARI01! EQU 1 SET /A CHIP_PINNO+=1
-REM ECHO !CHIP_PINNO!
-REM SET TEMPVARI01=1
-REM :LOOP01
 FOR /L %%I IN (1,1,!CHIP_PINNO!) DO SET "CHIP_PIN%%I=Desc %%I"
 SET /A "TEMPVARI02=(!CHIP_PINNO! / 2) + 18"
 IF !CHIP_PINNO! GEQ 28 (
@@ -31,13 +35,15 @@ IF !CHIP_PINNO! GEQ 28 (
 	FOR /L %%I IN (30,-1,!TEMPVARI02!) DO MODE 120,%%I >NUL & BREAK
 
 )
+REM FOR /L %%I IN (1,1,!CHIP_PINNO!) DO TITLE DIPPP !DIPPP_VER! - [!CHIP_NAME!, %%I pins] & TREE >NUL
+TITLE DIPPP !DIPPP_VER! - [!CHIP_NAME!, !CHIP_PINNO! pins]
 GOTO DRAWDIP
 
 :DRAWDIP
 CALL :DRAWLOGO
 ECHO !CHIP_NAME! Pinout
 ECHO.
-ECHO 			 .--__--.
+ECHO 			 !DIPPP_CHIPTOP!
 SET /A "TEMPVARI01=!CHIP_PINNO! / 2"
 SET "TEMPVARI02=!CHIP_PINNO!"
 FOR /L %%I IN (1,1,!TEMPVARI01!) DO ( 
@@ -52,7 +58,7 @@ FOR /L %%I IN (1,1,!TEMPVARI01!) DO (
 	SET /A TEMPVARI02-=1
 )
 timeout 0 >nul
-echo 			 '------'
+echo 			 !DIPPP_CHIPBOTTOM!
 ECHO 	[7m[←↑↓→][27m_Move Cursor	[7m[ENTER][27m_Edit chosen label	[7m[X][27m_Copy to clipboard with markdown characters
 ECHO.
 ECHO 	[7m[S][27m_Save as .txt	[7m[C][27m_Copy to clipboard		[101m[93m[7m[N][27m_New[0m
@@ -88,14 +94,14 @@ IF !ERRORLEVEL! EQU 13 (
 	CALL :ASKPROMPT "Label for pin !CURSORPOS!" CHIP_PIN!CURSORPOS! "A label for this specific pin."
 	GOTO DRAWDIP
 )
+SET "TEXTPATH=!TEMP!\!RANDOM!!RANDOM!.TXT"
 IF !ERRORLEVEL! EQU 67 (
-	SET "TEXTPATH=!TEMP!\!RANDOM!!RANDOM!.TXT"
+	REM SET "TEXTPATH=!TEMP!\!RANDOM!!RANDOM!.TXT"
 	CALL :WRITETEXT "!TEXTPATH!"
 	TYPE "!TEXTPATH!"|clip
 	DEL /Q "!TEXTPATH!"
 )
 IF !ERRORLEVEL! EQU 88 (
-	SET "TEXTPATH=!TEMP!\!RANDOM!!RANDOM!.TXT"
 	ECHO ``` >"!TEXTPATH!"
 	CALL :WRITETEXT "!TEXTPATH!"
 	ECHO ``` >>"!TEXTPATH!"
@@ -105,6 +111,18 @@ IF !ERRORLEVEL! EQU 88 (
 IF !ERRORLEVEL! EQU 83 ^
 for /f "delims=" %%I in ('powershell -command "[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms') | Out-Null; $f = New-Object System.Windows.Forms.SaveFileDialog; $f.Filter = 'Pinout File|*.txt'; if ($f.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Host $f.FileName } else { Write-Host 'None' }"') do ^
 IF NOT "%%I"=="None" CALL :WRITETEXT "%%I"
+
+IF !ERRORLEVEL! EQU 78 (
+	echo WScript.Quit msgBox^("Are you sure?",4,"DIPPP"^) >"!TEXTPATH!" 
+	cscript //nologo //e:vbscript "!TEXTPATH!" >NUL
+	IF !ERRORLEVEL! EQU 6 (
+		endlocal
+		set "TEMPVARI01="
+		START %0
+		EXIT /B
+	)
+	
+)
 GOTO LOOP2
 
 :DRAWLOGO
@@ -225,7 +243,7 @@ REM :WRITETEXT
 :WRITETEXT
 ECHO !CHIP_NAME! Pinout !WRITEORNOT! >>"%~1"
 ECHO. >>"%~1"
-ECHO                          .--__--. >>"%~1"
+ECHO                          !DIPPP_CHIPTOP! >>"%~1"
 SET /A "TEMPVARI01=!CHIP_PINNO! / 2"
 SET "TEMPVARI02=!CHIP_PINNO!"
 FOR /L %%I IN (1,1,!TEMPVARI01!) DO ( 
@@ -237,5 +255,5 @@ FOR /L %%I IN (1,1,!TEMPVARI01!) DO (
 	REM echo 			`------'
 	SET /A TEMPVARI02-=1
 )
-echo                          '------' >>"%~1"
+echo                          !DIPPP_CHIPBOTTOM! >>"%~1"
 goto :eof
